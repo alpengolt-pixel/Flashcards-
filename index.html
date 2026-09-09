@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Карточки слов</title>
+<style>
+  :root {
+    --ink: #2b2620;
+    --paper: #f6f1e7;
+    --card: #fffaf0;
+    --accent: #3d6b52;
+    --accent-soft: #cfe0d4;
+    --line: #d8cfbd;
+    --danger: #a94438;
+    color-scheme: light;
+  }
+  html {
+    background: var(--paper);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin: 4px 0 20px;
+    text-align: center;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tab {
+    border: none;
+    background: transparent;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--ink);
+    opacity: 0.6;
+    transition: all 0.2s ease;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    opacity: 1;
+  }
+  .panel {
+    width: 100%;
+    max-width: 440px;
+  }
+  .hidden { display: none; }
+
+  /* Add form */
+  .add-box {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+  .field input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    background: #fff;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  button.primary {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button.primary:active { transform: scale(0.99); }
+
+  .word-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .word-list-title {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin-bottom: 4px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .word-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 14px;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff6e0, #ffe9c7);
+    border: 1px solid #f0d9a6;
+    box-shadow: 0 2px 6px rgba(180, 130, 40, 0.12);
+  }
+  .word-row .w {
+    font-weight: bold;
+    font-size: 1.15rem;
+    color: #8f3d10;
+  }
+  .word-row .m {
+    opacity: 1;
+    font-size: 0.95rem;
+    flex: 1;
+    text-align: left;
+    margin-left: 0;
+    color: #245038;
+    font-weight: 700;
+  }
+  .word-row-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .word-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .study-count {
+    font-size: 0.78rem;
+    opacity: 1;
+    color: #5c421f;
+    font-weight: 600;
+  }
+  .study-count.forgot {
+    color: var(--danger);
+  }
+  .study-toggle {
+    border: 1px solid #d8a94a;
+    background: #fffdf6;
+    color: #a5691f;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0.85;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .study-toggle.marked {
+    background: linear-gradient(135deg, #4d8a68, #3d6b52);
+    color: #fff;
+    border-color: #3d6b52;
+    opacity: 1;
+    box-shadow: 0 1px 4px rgba(61, 107, 82, 0.4);
+  }
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .del-btn {
+    border: none;
+    background: #fff2e0;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.8;
+    padding: 6px 10px;
+    border-radius: 50%;
+  }
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    padding: 4px 8px;
+  }
+  .del-btn:hover { opacity: 1; }
+
+  /* Practice */
+  .practice-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .counter {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin-bottom: 16px;
+  }
+  .card {
+    width: 100%;
+    max-width: 380px;
+    height: 240px;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    background: var(--card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .card-front .word {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  .card-back {
+    transform: rotateY(180deg);
+    background: var(--accent-soft);
+  }
+  .card-back .meaning {
+    font-size: 1.3rem;
+  }
+  .hint {
+    margin-top: 14px;
+    font-size: 0.8rem;
+    opacity: 0.5;
+  }
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .nav-row button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .nav-row button.next {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+  }
+  .answer-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .answer-row button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+  .forgot-btn {
+    background: #f6d9d2;
+    color: #8a2f21;
+  }
+  .remember-btn {
+    background: var(--accent);
+    color: #fff;
+  }
+  .review-badge {
+    background: #f6d9d2;
+    color: #8a2f21;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+  }
+  .empty-state p { margin: 6px 0; }
+
+  /* Direction toggle */
+  .direction-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .direction-toggle button {
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink);
+    opacity: 0.6;
+    transition: all 0.2s ease;
+  }
+  .direction-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+    opacity: 1;
+  }
+  .toggles-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .no-marked-state {
+    text-align: center;
+    padding: 30px 20px;
+    opacity: 0.75;
+    max-width: 380px;
+  }
+  .no-marked-state p { margin: 6px 0; }
+
+  /* Backup box */
+  .backup-box {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+  }
+  .backup-title {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+  .backup-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .backup-buttons button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  #backup-area {
+    width: 100%;
+    min-height: 80px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+  }
+  #backup-notice {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    min-height: 1em;
+  }
+  .word-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .refresh-btn {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .refresh-btn:active {
+    transform: scale(0.97);
+  }
+</style>
+</head>
+<body>
+
+<h1>Мои карточки слов</h1>
+
+<div class="tabs">
+  <button class="tab active" data-tab="add">Добавить</button>
+  <button class="tab" data-tab="practice">Учить</button>
+</div>
+
+<div class="panel" id="add-panel">
+  <div class="add-box">
+    <div class="field">
+      <label for="word-input">Слово</label>
+      <input id="word-input" type="text" placeholder="например, ephemeral" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="meaning-input">Значение</label>
+      <input id="meaning-input" type="text" placeholder="например, недолговечный" autocomplete="off">
+    </div>
+    <button class="primary" id="add-btn">Добавить карточку</button>
+    <div id="save-notice" style="display:none; margin-top:10px; font-size:0.8rem; color:#a94438; text-align:center;"></div>
+  </div>
+
+  <div class="word-list" id="word-list-wrap">
+    <div class="word-list-header">
+      <div class="word-list-title" id="word-list-title">Слова в колоде</div>
+      <button id="refresh-results-btn" type="button" class="refresh-btn">↻ Обновить результаты</button>
+    </div>
+    <div id="word-list"></div>
+  </div>
+
+  <div class="backup-box">
+    <div class="backup-title">Резервная копия</div>
+    <div class="backup-buttons">
+      <button id="export-btn" type="button">Скопировать список</button>
+      <button id="import-btn" type="button">Восстановить из текста</button>
+    </div>
+    <textarea id="backup-area" class="hidden" placeholder="Сюда вставь ранее скопированный список, потом нажми «Загрузить»"></textarea>
+    <button id="import-confirm-btn" class="primary hidden" type="button" style="margin-top:10px;">Загрузить</button>
+    <div id="backup-notice"></div>
+  </div>
+</div>
+
+<div class="panel hidden" id="practice-panel">
+  <div id="practice-content"></div>
+</div>
+
+<script>
+let words = [];
+let deck = [];
+let currentIndex = 0;
+let loaded = false;
+let direction = 'en-ru'; // 'en-ru' or 'ru-en'
+
+const STORAGE_KEY = 'flashcards:words';
+let storageAvailable = true;
+
+function showSaveNotice(message) {
+  const el = document.getElementById('save-notice');
+  if (!el) return;
+  el.textContent = message;
+  el.style.display = message ? 'block' : 'none';
+}
+
+function normalizeWords(list) {
+  return (list || []).map(w => ({
+    word: w.word,
+    meaning: w.meaning,
+    studyCount: typeof w.studyCount === 'number' ? w.studyCount : 0,
+    forgotCount: typeof w.forgotCount === 'number' ? w.forgotCount : 0,
+    marked: typeof w.marked === 'boolean' ? w.marked : true,
+    needsReview: typeof w.needsReview === 'boolean' ? w.needsReview : false,
+    rememberStreak: typeof w.rememberStreak === 'number' ? w.rememberStreak : 0
+  }));
+}
+
+async function loadWords() {
+  // Primary: localStorage — works reliably when saved to Home Screen / opened in Safari
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      words = normalizeWords(JSON.parse(raw));
+      loaded = true;
+      renderWordList();
+      return;
+    }
+  } catch (e) {
+    // ignore, try other source below
+  }
+
+  // Secondary: window.storage, in case this is running inside Claude and has older data
+  try {
+    if (window.storage && typeof window.storage.get === 'function') {
+      const result = await window.storage.get(STORAGE_KEY, false);
+      words = result && result.value ? normalizeWords(JSON.parse(result.value)) : [];
+      loaded = true;
+      renderWordList();
+      return;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  words = [];
+  loaded = true;
+  renderWordList();
+}
+
+async function saveWords() {
+  // Primary: localStorage
+  let localOk = false;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    localOk = true;
+  } catch (e) {
+    localOk = false;
+  }
+
+  // Also try window.storage as a bonus backup, but don't depend on it
+  try {
+    if (window.storage && typeof window.storage.set === 'function') {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(words), false);
+    }
+  } catch (e) {
+    // ignore, localStorage is what matters now
+  }
+
+  showSaveNotice(localOk ? '' : 'Не удалось сохранить слова на этом устройстве.');
+}
+
+function renderWordList() {
+  const listEl = document.getElementById('word-list');
+  const titleEl = document.getElementById('word-list-title');
+  if (words.length === 0) {
+    titleEl.textContent = 'Пока нет слов — добавьте первое';
+    listEl.innerHTML = '';
+    return;
+  }
+  titleEl.textContent = `Слова в колоде (${words.length})`;
+  listEl.innerHTML = words.map((w, i) => `
+    <div class="word-row">
+      <div class="word-row-main">
+        <div class="w">${escapeHtml(w.word)}</div>
+        <div class="m">${escapeHtml(w.meaning)}</div>
+        <div class="word-meta">
+          <button class="study-toggle ${w.marked ? 'marked' : ''}" data-index="${i}">${w.marked ? 'Учить сейчас' : 'Не в изучении'}</button>
+          <span class="study-count">повторено: ${w.studyCount || 0}</span>
+          <span class="study-count forgot">не помню: ${w.forgotCount || 0}</span>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="del-btn" data-index="${i}">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.index, 10);
+      words.splice(idx, 1);
+      saveWords();
+      renderWordList();
+    });
+  });
+
+  listEl.querySelectorAll('.study-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.index, 10);
+      words[idx].marked = !words[idx].marked;
+      saveWords();
+      renderWordList();
+    });
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById('add-btn').addEventListener('click', async () => {
+  const wordInput = document.getElementById('word-input');
+  const meaningInput = document.getElementById('meaning-input');
+  const word = wordInput.value.trim();
+  const meaning = meaningInput.value.trim();
+  if (!word || !meaning) return;
+  words.push({ word, meaning, studyCount: 0, forgotCount: 0, marked: true, needsReview: false, rememberStreak: 0 });
+  await saveWords();
+  wordInput.value = '';
+  meaningInput.value = '';
+  wordInput.focus();
+  renderWordList();
+});
+
+document.getElementById('meaning-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('add-btn').click();
+});
+document.getElementById('word-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('meaning-input').focus();
+});
+
+// Backup: export
+function encodeBackup() {
+  // Simple readable format: word :: meaning, one per line
+  return words.map(w => `${w.word} :: ${w.meaning}`).join('\n');
+}
+
+function decodeBackup(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const parsed = [];
+  for (const line of lines) {
+    const sep = line.includes('::') ? '::' : (line.includes('\t') ? '\t' : null);
+    if (!sep) continue;
+    const [word, ...rest] = line.split(sep);
+    const meaning = rest.join(sep).trim();
+    if (word && meaning) parsed.push({ word: word.trim(), meaning });
+  }
+  return parsed;
+}
+
+function showBackupNotice(message) {
+  const el = document.getElementById('backup-notice');
+  el.textContent = message;
+}
+
+document.getElementById('export-btn').addEventListener('click', async () => {
+  const text = encodeBackup();
+  if (!text) {
+    showBackupNotice('Список пуст — нечего копировать.');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showBackupNotice('Список скопирован — сохрани его в заметки на всякий случай.');
+  } catch (e) {
+    // fallback: show it in the textarea so the user can copy manually
+    const area = document.getElementById('backup-area');
+    area.classList.remove('hidden');
+    area.value = text;
+    area.select();
+    showBackupNotice('Не удалось скопировать автоматически — текст ниже, выдели и скопируй вручную.');
+  }
+});
+
+document.getElementById('import-btn').addEventListener('click', () => {
+  const area = document.getElementById('backup-area');
+  const confirmBtn = document.getElementById('import-confirm-btn');
+  area.classList.toggle('hidden');
+  confirmBtn.classList.toggle('hidden');
+  if (!area.classList.contains('hidden')) {
+    area.value = '';
+    area.focus();
+    showBackupNotice('');
+  }
+});
+
+document.getElementById('import-confirm-btn').addEventListener('click', async () => {
+  const area = document.getElementById('backup-area');
+  const parsed = decodeBackup(area.value);
+  if (parsed.length === 0) {
+    showBackupNotice('Не удалось распознать слова. Формат: слово :: значение, каждая пара на новой строке.');
+    return;
+  }
+  words = normalizeWords(parsed);
+  await saveWords();
+  renderWordList();
+  area.classList.add('hidden');
+  document.getElementById('import-confirm-btn').classList.add('hidden');
+  showBackupNotice(`Восстановлено слов: ${parsed.length}.`);
+});
+
+document.getElementById('refresh-results-btn').addEventListener('click', () => {
+  renderWordList();
+});
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById('add-panel').classList.toggle('hidden', target !== 'add');
+    document.getElementById('practice-panel').classList.toggle('hidden', target !== 'practice');
+    if (target === 'practice') startPractice();
+    if (target === 'add') renderWordList();
+  });
+});
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let order = 'random'; // 'random' or 'sequential'
+
+function buildDeck() {
+  const marked = words.filter(w => w.marked);
+  const weighted = [];
+  marked.forEach(w => {
+    const copies = w.needsReview ? 3 : 1; // "не помню" карточки встречаются чаще
+    for (let i = 0; i < copies; i++) weighted.push(w);
+  });
+  return order === 'random' ? shuffle(weighted) : weighted;
+}
+
+function startPractice() {
+  const content = document.getElementById('practice-content');
+  if (words.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <p>Колода пуста.</p>
+        <p>Добавьте слова во вкладке «Добавить», чтобы начать тренировку.</p>
+      </div>`;
+    return;
+  }
+  currentIndex = 0;
+  renderPracticeView();
+}
+
+function renderPracticeView() {
+  const content = document.getElementById('practice-content');
+  const markedCount = words.filter(w => w.marked).length;
+
+  content.innerHTML = `
+    <div class="toggles-row">
+      <div class="direction-toggle" id="direction-toggle">
+        <button data-dir="en-ru" class="${direction === 'en-ru' ? 'active' : ''}">Сначала слово</button>
+        <button data-dir="ru-en" class="${direction === 'ru-en' ? 'active' : ''}">Сначала значение</button>
+      </div>
+      <div class="direction-toggle" id="order-toggle">
+        <button data-order="random" class="${order === 'random' ? 'active' : ''}">Случайный порядок</button>
+        <button data-order="sequential" class="${order === 'sequential' ? 'active' : ''}">По списку</button>
+      </div>
+    </div>
+    <div id="card-area"></div>
+  `;
+
+  document.querySelectorAll('#direction-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      direction = btn.dataset.dir;
+      currentIndex = 0;
+      deck = buildDeck();
+      renderPracticeView();
+    });
+  });
+
+  document.querySelectorAll('#order-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      order = btn.dataset.order;
+      currentIndex = 0;
+      deck = buildDeck();
+      renderPracticeView();
+    });
+  });
+
+  if (markedCount === 0) {
+    document.getElementById('card-area').innerHTML = `
+      <div class="no-marked-state">
+        <p>Нет карточек, отмеченных «Учить сейчас».</p>
+        <p>Зайди во вкладку «Добавить» и отметь кнопкой «Учить сейчас» те слова, которые хочешь повторять.</p>
+      </div>`;
+    return;
+  }
+
+  deck = buildDeck();
+  currentIndex = 0;
+  renderCard();
+}
+
+function renderCard() {
+  const cardArea = document.getElementById('card-area');
+  const total = deck.length;
+  const item = deck[currentIndex];
+
+  const front = direction === 'en-ru' ? item.word : item.meaning;
+  const back = direction === 'en-ru' ? item.meaning : item.word;
+
+  cardArea.innerHTML = `
+    <div class="practice-wrap">
+      <div class="counter">Карточка ${currentIndex + 1} из ${total} · повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз</div>
+      ${item.needsReview ? `<div class="review-badge">На повторе · ${2 - (item.rememberStreak || 0)} раз до нормального режима</div>` : ''}
+      <div class="card" id="flip-card">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="word">${escapeHtml(front)}</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="meaning">${escapeHtml(back)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="hint">Нажмите на карточку, чтобы увидеть ответ</div>
+      <div class="answer-row">
+        <button id="forgot-btn" class="forgot-btn">Не помню</button>
+        <button id="next-btn" class="remember-btn">Помню</button>
+      </div>
+      <div class="nav-row">
+        <button id="reshuffle-btn">${order === 'random' ? 'Перемешать заново' : 'Начать сначала'}</button>
+      </div>
+    </div>
+  `;
+
+  const cardEl = document.getElementById('flip-card');
+  let counted = false;
+  cardEl.addEventListener('click', async () => {
+    const nowFlipped = cardEl.classList.toggle('flipped');
+    if (nowFlipped && !counted) {
+      counted = true;
+      item.studyCount = (item.studyCount || 0) + 1;
+      await saveWords();
+      updateCounter();
+    }
+  });
+
+  function updateCounter() {
+    const counterEl = cardArea.querySelector('.counter');
+    if (counterEl) counterEl.textContent = `Карточка ${currentIndex + 1} из ${total} · повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз`;
+  }
+
+  function goNext() {
+    currentIndex = (currentIndex + 1) % deck.length;
+    if (currentIndex === 0) {
+      deck = buildDeck();
+    }
+    renderCard();
+  }
+
+  document.getElementById('forgot-btn').addEventListener('click', async () => {
+    item.forgotCount = (item.forgotCount || 0) + 1;
+    item.needsReview = true;
+    item.rememberStreak = 0;
+    await saveWords();
+    goNext();
+  });
+
+  document.getElementById('next-btn').addEventListener('click', async () => {
+    if (item.needsReview) {
+      item.rememberStreak = (item.rememberStreak || 0) + 1;
+      if (item.rememberStreak >= 2) {
+        item.needsReview = false;
+        item.rememberStreak = 0;
+      }
+      await saveWords();
+    }
+    goNext();
+  });
+
+  document.getElementById('reshuffle-btn').addEventListener('click', () => {
+    deck = buildDeck();
+    currentIndex = 0;
+    renderCard();
+  });
+}
+
+loadWords();
+</script>
+
+</body>
+</html>
