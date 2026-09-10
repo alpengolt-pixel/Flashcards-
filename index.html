@@ -708,6 +708,7 @@ function normalizeTopics(list, wordsList) {
 }
 
 async function loadAll() {
+  // Words: primary localStorage, secondary window.storage
   try {
     const raw = localStorage.getItem(WORDS_KEY);
     if (raw) {
@@ -722,6 +723,7 @@ async function loadAll() {
     words = [];
   }
 
+  // Topics: primary localStorage, secondary window.storage
   try {
     const rawTopics = localStorage.getItem(TOPICS_KEY);
     if (rawTopics) {
@@ -774,12 +776,16 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+/* ---------- Topics UI ---------- */
+
 function renderTopicSelects() {
+  // Add-form topic select
   const addSelect = document.getElementById('topic-select');
   const prevAddValue = addSelect.value;
   addSelect.innerHTML = topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
   if (topics.includes(prevAddValue)) addSelect.value = prevAddValue;
 
+  // List filter select (add tab)
   const listSelect = document.getElementById('list-topic-filter');
   listSelect.innerHTML = `<option value="all">Все разделы</option>` +
     topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
@@ -864,6 +870,8 @@ function renderAlphaIndex(visible) {
   });
 }
 
+/* ---------- Word list (Add tab) ---------- */
+
 function renderWordList() {
   const listEl = document.getElementById('word-list');
   const titleEl = document.getElementById('word-list-title');
@@ -945,6 +953,7 @@ function renderWordList() {
     });
   });
 
+  // Wire up edit-form buttons if an edit row is present
   const editRow = listEl.querySelector('.edit-form');
   if (editRow) {
     const id = editRow.dataset.id;
@@ -1017,6 +1026,8 @@ document.getElementById('refresh-results-btn').addEventListener('click', () => {
   renderWordList();
 });
 
+/* ---------- Backup ---------- */
+
 function encodeBackup() {
   return words.map(w => `${w.word} :: ${w.meaning} :: ${w.topic}`).join('\n');
 }
@@ -1088,6 +1099,8 @@ document.getElementById('import-confirm-btn').addEventListener('click', async ()
   showBackupNotice(`Восстановлено слов: ${parsed.length}.`);
 });
 
+/* ---------- Tabs ---------- */
+
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1099,6 +1112,8 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (target === 'add') { editingId = null; renderWordList(); }
   });
 });
+
+/* ---------- Practice ---------- */
 
 function shuffle(arr) {
   const a = [...arr];
