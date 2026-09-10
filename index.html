@@ -16,9 +16,7 @@
     --danger: #a94438;
     color-scheme: light;
   }
-  html {
-    background: var(--paper);
-  }
+  html { background: var(--paper); }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -86,7 +84,9 @@
     margin-bottom: 6px;
     opacity: 0.7;
   }
-  .field input {
+  .field input,
+  .field select,
+  select.select-input {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--line);
@@ -94,8 +94,10 @@
     font-family: inherit;
     font-size: 1rem;
     background: #fff;
+    color: var(--ink);
   }
-  .field input:focus {
+  .field input:focus,
+  .field select:focus {
     outline: none;
     border-color: var(--accent);
   }
@@ -112,23 +114,129 @@
   }
   button.primary:active { transform: scale(0.99); }
 
+  /* Topics management */
+  .topics-box {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+  }
+  .topics-title {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 10px;
+  }
+  .topics-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .topics-add-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  .topics-add-row button {
+    padding: 9px 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .topics-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topic-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-soft);
+    color: #245038;
+    padding: 5px 6px 5px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .topic-pill .topic-count {
+    opacity: 0.7;
+    font-weight: 400;
+    font-size: 0.75rem;
+  }
+  .topic-pill .topic-del {
+    border: none;
+    background: rgba(255,255,255,0.6);
+    color: var(--danger);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.75rem;
+  }
+
+  /* Word list */
   .word-list {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
+  .word-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
   .word-list-title {
     font-size: 0.85rem;
     opacity: 0.85;
-    margin-bottom: 4px;
     color: var(--ink);
     font-weight: 600;
   }
+  .refresh-btn {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .refresh-btn:active { transform: scale(0.97); }
+
+  .list-filter-row {
+    margin-bottom: 4px;
+  }
+  .list-filter-row select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #fff;
+    color: var(--ink);
+  }
+
   .word-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 14px 16px;
     border-radius: 14px;
     gap: 10px;
@@ -144,15 +252,22 @@
   .word-row .m {
     opacity: 1;
     font-size: 0.95rem;
-    flex: 1;
-    text-align: left;
-    margin-left: 0;
     color: #245038;
     font-weight: 700;
   }
   .word-row-main {
     flex: 1;
     min-width: 0;
+  }
+  .topic-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #5c421f;
+    background: rgba(255,255,255,0.6);
+    padding: 2px 9px;
+    border-radius: 999px;
+    margin-bottom: 6px;
   }
   .word-meta {
     display: flex;
@@ -163,13 +278,10 @@
   }
   .study-count {
     font-size: 0.78rem;
-    opacity: 1;
     color: #5c421f;
     font-weight: 600;
   }
-  .study-count.forgot {
-    color: var(--danger);
-  }
+  .study-count.forgot { color: var(--danger); }
   .study-toggle {
     border: 1px solid #d8a94a;
     background: #fffdf6;
@@ -192,27 +304,61 @@
   }
   .row-actions {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
   }
-  .del-btn {
+  .icon-btn {
     border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 6px 9px;
+    border-radius: 50%;
+    line-height: 1;
+  }
+  .edit-btn {
+    background: #eef2ee;
+    color: var(--accent);
+  }
+  .del-btn {
     background: #fff2e0;
     color: var(--danger);
-    cursor: pointer;
-    font-size: 1rem;
-    opacity: 0.8;
-    padding: 6px 10px;
-    border-radius: 50%;
   }
-    color: var(--danger);
-    cursor: pointer;
-    font-size: 1rem;
-    opacity: 0.6;
-    padding: 4px 8px;
+
+  /* Inline edit form */
+  .edit-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .del-btn:hover { opacity: 1; }
+  .edit-form input,
+  .edit-form select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    background: #fff;
+  }
+  .edit-form-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .edit-form-buttons button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .edit-save { background: var(--accent); color: #fff; }
+  .edit-cancel { background: #eee; color: var(--ink); }
 
   /* Practice */
   .practice-wrap {
@@ -223,7 +369,8 @@
   .counter {
     font-size: 0.85rem;
     opacity: 0.6;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    text-align: center;
   }
   .card {
     width: 100%;
@@ -239,9 +386,7 @@
     transition: transform 0.5s;
     transform-style: preserve-3d;
   }
-  .card.flipped .card-inner {
-    transform: rotateY(180deg);
-  }
+  .card.flipped .card-inner { transform: rotateY(180deg); }
   .card-face {
     position: absolute;
     width: 100%;
@@ -257,22 +402,10 @@
     background: var(--card);
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
   }
-  .card-front .word {
-    font-size: 1.8rem;
-    font-weight: bold;
-  }
-  .card-back {
-    transform: rotateY(180deg);
-    background: var(--accent-soft);
-  }
-  .card-back .meaning {
-    font-size: 1.3rem;
-  }
-  .hint {
-    margin-top: 14px;
-    font-size: 0.8rem;
-    opacity: 0.5;
-  }
+  .card-front .word { font-size: 1.8rem; font-weight: bold; }
+  .card-back { transform: rotateY(180deg); background: var(--accent-soft); }
+  .card-back .meaning { font-size: 1.3rem; }
+  .hint { margin-top: 14px; font-size: 0.8rem; opacity: 0.5; }
   .nav-row {
     display: flex;
     gap: 12px;
@@ -291,11 +424,6 @@
     cursor: pointer;
     color: var(--ink);
   }
-  .nav-row button.next {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-  }
   .answer-row {
     display: flex;
     gap: 12px;
@@ -313,14 +441,8 @@
     cursor: pointer;
     border: none;
   }
-  .forgot-btn {
-    background: #f6d9d2;
-    color: #8a2f21;
-  }
-  .remember-btn {
-    background: var(--accent);
-    color: #fff;
-  }
+  .forgot-btn { background: #f6d9d2; color: #8a2f21; }
+  .remember-btn { background: var(--accent); color: #fff; }
   .review-badge {
     background: #f6d9d2;
     color: #8a2f21;
@@ -330,14 +452,14 @@
     border-radius: 999px;
     margin-bottom: 12px;
   }
-  .empty-state {
+  .empty-state, .no-marked-state {
     text-align: center;
-    padding: 40px 20px;
-    opacity: 0.7;
+    padding: 30px 20px;
+    opacity: 0.75;
+    max-width: 380px;
   }
-  .empty-state p { margin: 6px 0; }
+  .empty-state p, .no-marked-state p { margin: 6px 0; }
 
-  /* Direction toggle */
   .direction-toggle {
     display: flex;
     gap: 4px;
@@ -345,19 +467,19 @@
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 4px;
-    margin-bottom: 20px;
   }
   .direction-toggle button {
     border: none;
     background: transparent;
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 999px;
     font-family: inherit;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
     color: var(--ink);
     opacity: 0.6;
     transition: all 0.2s ease;
+    flex: 1;
   }
   .direction-toggle button.active {
     background: var(--accent);
@@ -367,17 +489,28 @@
   .toggles-row {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 8px;
-    margin-bottom: 12px;
-  }
-  .no-marked-state {
-    text-align: center;
-    padding: 30px 20px;
-    opacity: 0.75;
+    margin-bottom: 16px;
+    width: 100%;
     max-width: 380px;
   }
-  .no-marked-state p { margin: 6px 0; }
+  .filters-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  .filters-row select {
+    flex: 1;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    background: var(--card);
+    color: var(--ink);
+    text-align: center;
+  }
 
   /* Backup box */
   .backup-box {
@@ -385,15 +518,8 @@
     padding-top: 18px;
     border-top: 1px dashed var(--line);
   }
-  .backup-title {
-    font-size: 0.85rem;
-    opacity: 0.6;
-    margin-bottom: 10px;
-  }
-  .backup-buttons {
-    display: flex;
-    gap: 8px;
-  }
+  .backup-title { font-size: 0.85rem; opacity: 0.6; margin-bottom: 10px; }
+  .backup-buttons { display: flex; gap: 8px; }
   .backup-buttons button {
     flex: 1;
     padding: 10px;
@@ -422,28 +548,6 @@
     color: var(--accent);
     min-height: 1em;
   }
-  .word-list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-  .refresh-btn {
-    border: 1px solid var(--line);
-    background: var(--card);
-    color: var(--accent);
-    font-family: inherit;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 999px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .refresh-btn:active {
-    transform: scale(0.97);
-  }
 </style>
 </head>
 <body>
@@ -465,14 +569,30 @@
       <label for="meaning-input">Значение</label>
       <input id="meaning-input" type="text" placeholder="например, недолговечный" autocomplete="off">
     </div>
+    <div class="field">
+      <label for="topic-select">Раздел</label>
+      <select id="topic-select"></select>
+    </div>
     <button class="primary" id="add-btn">Добавить карточку</button>
     <div id="save-notice" style="display:none; margin-top:10px; font-size:0.8rem; color:#a94438; text-align:center;"></div>
+  </div>
+
+  <div class="topics-box">
+    <div class="topics-title">Разделы</div>
+    <div class="topics-add-row">
+      <input id="new-topic-input" type="text" placeholder="Название нового раздела" autocomplete="off">
+      <button id="add-topic-btn" type="button">Добавить</button>
+    </div>
+    <div class="topics-pills" id="topics-pills"></div>
   </div>
 
   <div class="word-list" id="word-list-wrap">
     <div class="word-list-header">
       <div class="word-list-title" id="word-list-title">Слова в колоде</div>
       <button id="refresh-results-btn" type="button" class="refresh-btn">↻ Обновить результаты</button>
+    </div>
+    <div class="list-filter-row">
+      <select id="list-topic-filter"></select>
     </div>
     <div id="word-list"></div>
   </div>
@@ -495,13 +615,23 @@
 
 <script>
 let words = [];
+let topics = ['Общее'];
 let deck = [];
 let currentIndex = 0;
 let loaded = false;
-let direction = 'en-ru'; // 'en-ru' or 'ru-en'
+let direction = 'en-ru';       // 'en-ru' or 'ru-en'
+let order = 'random';          // 'random' or 'sequential'
+let topicFilter = 'all';       // 'all' or a topic name (practice)
+let statusFilter = 'all';      // 'all' | 'forgot' | 'new'
+let listTopicFilter = 'all';   // 'all' or a topic name (add tab list)
+let editingId = null;
 
-const STORAGE_KEY = 'flashcards:words';
-let storageAvailable = true;
+const WORDS_KEY = 'flashcards:words';
+const TOPICS_KEY = 'flashcards:topics';
+
+function genId() {
+  return 'w_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
 
 function showSaveNotice(message) {
   const el = document.getElementById('save-notice');
@@ -512,8 +642,10 @@ function showSaveNotice(message) {
 
 function normalizeWords(list) {
   return (list || []).map(w => ({
+    id: w.id || genId(),
     word: w.word,
     meaning: w.meaning,
+    topic: w.topic && typeof w.topic === 'string' ? w.topic : 'Общее',
     studyCount: typeof w.studyCount === 'number' ? w.studyCount : 0,
     forgotCount: typeof w.forgotCount === 'number' ? w.forgotCount : 0,
     marked: typeof w.marked === 'boolean' ? w.marked : true,
@@ -522,136 +654,292 @@ function normalizeWords(list) {
   }));
 }
 
-async function loadWords() {
-  // Primary: localStorage — works reliably when saved to Home Screen / opened in Safari
+function normalizeTopics(list, wordsList) {
+  const set = new Set(['Общее']);
+  (list || []).forEach(t => { if (t && typeof t === 'string') set.add(t); });
+  (wordsList || []).forEach(w => { if (w.topic) set.add(w.topic); });
+  return Array.from(set);
+}
+
+async function loadAll() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(WORDS_KEY);
     if (raw) {
       words = normalizeWords(JSON.parse(raw));
-      loaded = true;
-      renderWordList();
-      return;
-    }
-  } catch (e) {
-    // ignore, try other source below
-  }
-
-  // Secondary: window.storage, in case this is running inside Claude and has older data
-  try {
-    if (window.storage && typeof window.storage.get === 'function') {
-      const result = await window.storage.get(STORAGE_KEY, false);
+    } else if (window.storage && typeof window.storage.get === 'function') {
+      const result = await window.storage.get(WORDS_KEY, false).catch(() => null);
       words = result && result.value ? normalizeWords(JSON.parse(result.value)) : [];
-      loaded = true;
-      renderWordList();
-      return;
+    } else {
+      words = [];
     }
   } catch (e) {
-    // ignore
+    words = [];
   }
 
-  words = [];
+  try {
+    const rawTopics = localStorage.getItem(TOPICS_KEY);
+    if (rawTopics) {
+      topics = normalizeTopics(JSON.parse(rawTopics), words);
+    } else if (window.storage && typeof window.storage.get === 'function') {
+      const result = await window.storage.get(TOPICS_KEY, false).catch(() => null);
+      topics = normalizeTopics(result && result.value ? JSON.parse(result.value) : [], words);
+    } else {
+      topics = normalizeTopics([], words);
+    }
+  } catch (e) {
+    topics = normalizeTopics([], words);
+  }
+
   loaded = true;
+  renderTopicSelects();
   renderWordList();
 }
 
 async function saveWords() {
-  // Primary: localStorage
   let localOk = false;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    localStorage.setItem(WORDS_KEY, JSON.stringify(words));
     localOk = true;
   } catch (e) {
     localOk = false;
   }
-
-  // Also try window.storage as a bonus backup, but don't depend on it
   try {
     if (window.storage && typeof window.storage.set === 'function') {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(words), false);
+      await window.storage.set(WORDS_KEY, JSON.stringify(words), false);
     }
-  } catch (e) {
-    // ignore, localStorage is what matters now
-  }
-
+  } catch (e) { /* ignore */ }
   showSaveNotice(localOk ? '' : 'Не удалось сохранить слова на этом устройстве.');
 }
+
+async function saveTopics() {
+  try {
+    localStorage.setItem(TOPICS_KEY, JSON.stringify(topics));
+  } catch (e) { /* ignore */ }
+  try {
+    if (window.storage && typeof window.storage.set === 'function') {
+      await window.storage.set(TOPICS_KEY, JSON.stringify(topics), false);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+function renderTopicSelects() {
+  const addSelect = document.getElementById('topic-select');
+  const prevAddValue = addSelect.value;
+  addSelect.innerHTML = topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  if (topics.includes(prevAddValue)) addSelect.value = prevAddValue;
+
+  const listSelect = document.getElementById('list-topic-filter');
+  listSelect.innerHTML = `<option value="all">Все разделы</option>` +
+    topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  listSelect.value = topics.includes(listTopicFilter) ? listTopicFilter : 'all';
+
+  renderTopicsManager();
+}
+
+function renderTopicsManager() {
+  const pillsEl = document.getElementById('topics-pills');
+  pillsEl.innerHTML = topics.map(t => {
+    const count = words.filter(w => w.topic === t).length;
+    const canDelete = t !== 'Общее';
+    return `
+      <div class="topic-pill">
+        <span>${escapeHtml(t)}</span>
+        <span class="topic-count">${count}</span>
+        ${canDelete ? `<button class="topic-del" data-topic="${escapeHtml(t)}" title="Удалить раздел">✕</button>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  pillsEl.querySelectorAll('.topic-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const topicName = btn.dataset.topic;
+      if (!confirm(`Удалить раздел «${topicName}»? Карточки из него переедут в «Общее».`)) return;
+      words.forEach(w => { if (w.topic === topicName) w.topic = 'Общее'; });
+      topics = topics.filter(t => t !== topicName);
+      if (listTopicFilter === topicName) listTopicFilter = 'all';
+      if (topicFilter === topicName) topicFilter = 'all';
+      await saveWords();
+      await saveTopics();
+      renderTopicSelects();
+      renderWordList();
+    });
+  });
+}
+
+document.getElementById('add-topic-btn').addEventListener('click', async () => {
+  const input = document.getElementById('new-topic-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (topics.includes(name)) {
+    input.value = '';
+    return;
+  }
+  topics.push(name);
+  await saveTopics();
+  input.value = '';
+  renderTopicSelects();
+});
+
+document.getElementById('new-topic-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('add-topic-btn').click();
+});
+
+document.getElementById('list-topic-filter').addEventListener('change', (e) => {
+  listTopicFilter = e.target.value;
+  renderWordList();
+});
 
 function renderWordList() {
   const listEl = document.getElementById('word-list');
   const titleEl = document.getElementById('word-list-title');
+
+  const visible = words.filter(w => listTopicFilter === 'all' || w.topic === listTopicFilter);
+
   if (words.length === 0) {
     titleEl.textContent = 'Пока нет слов — добавьте первое';
     listEl.innerHTML = '';
     return;
   }
-  titleEl.textContent = `Слова в колоде (${words.length})`;
-  listEl.innerHTML = words.map((w, i) => `
-    <div class="word-row">
+  if (visible.length === 0) {
+    titleEl.textContent = `Слова в колоде (${words.length})`;
+    listEl.innerHTML = `<div class="no-marked-state"><p>В этом разделе пока нет слов.</p></div>`;
+    return;
+  }
+
+  titleEl.textContent = listTopicFilter === 'all'
+    ? `Слова в колоде (${words.length})`
+    : `Слова в разделе «${listTopicFilter}» (${visible.length})`;
+
+  listEl.innerHTML = visible.map(w => {
+    if (w.id === editingId) {
+      return renderEditRow(w);
+    }
+    return `
+    <div class="word-row" data-id="${w.id}">
       <div class="word-row-main">
+        <div class="topic-badge">${escapeHtml(w.topic)}</div>
         <div class="w">${escapeHtml(w.word)}</div>
         <div class="m">${escapeHtml(w.meaning)}</div>
         <div class="word-meta">
-          <button class="study-toggle ${w.marked ? 'marked' : ''}" data-index="${i}">${w.marked ? 'Учить сейчас' : 'Не в изучении'}</button>
+          <button class="study-toggle ${w.marked ? 'marked' : ''}" data-id="${w.id}" data-action="toggle-mark">${w.marked ? 'Учить сейчас' : 'Не в изучении'}</button>
           <span class="study-count">повторено: ${w.studyCount || 0}</span>
           <span class="study-count forgot">не помню: ${w.forgotCount || 0}</span>
         </div>
       </div>
       <div class="row-actions">
-        <button class="del-btn" data-index="${i}">✕</button>
+        <button class="icon-btn edit-btn" data-id="${w.id}" data-action="edit" title="Редактировать">✎</button>
+        <button class="icon-btn del-btn" data-id="${w.id}" data-action="delete" title="Удалить">✕</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
-  listEl.querySelectorAll('.del-btn').forEach(btn => {
+  listEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.index, 10);
-      words.splice(idx, 1);
+      const id = btn.dataset.id;
+      words = words.filter(w => w.id !== id);
       saveWords();
       renderWordList();
     });
   });
 
-  listEl.querySelectorAll('.study-toggle').forEach(btn => {
+  listEl.querySelectorAll('[data-action="toggle-mark"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.index, 10);
-      words[idx].marked = !words[idx].marked;
+      const id = btn.dataset.id;
+      const w = words.find(x => x.id === id);
+      if (w) w.marked = !w.marked;
       saveWords();
       renderWordList();
     });
   });
+
+  listEl.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      editingId = btn.dataset.id;
+      renderWordList();
+    });
+  });
+
+  const editRow = listEl.querySelector('.edit-form');
+  if (editRow) {
+    const id = editRow.dataset.id;
+    const w = words.find(x => x.id === id);
+    editRow.querySelector('.edit-save').addEventListener('click', async () => {
+      const newWord = editRow.querySelector('.edit-word').value.trim();
+      const newMeaning = editRow.querySelector('.edit-meaning').value.trim();
+      const newTopic = editRow.querySelector('.edit-topic').value;
+      if (!newWord || !newMeaning) return;
+      w.word = newWord;
+      w.meaning = newMeaning;
+      w.topic = newTopic;
+      editingId = null;
+      await saveWords();
+      renderTopicsManager();
+      renderWordList();
+    });
+    editRow.querySelector('.edit-cancel').addEventListener('click', () => {
+      editingId = null;
+      renderWordList();
+    });
+  }
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+function renderEditRow(w) {
+  const topicOptions = topics.map(t => `<option value="${escapeHtml(t)}" ${t === w.topic ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+  return `
+    <div class="word-row" data-id="${w.id}">
+      <div class="edit-form" data-id="${w.id}">
+        <input class="edit-word" type="text" value="${escapeHtml(w.word)}" placeholder="Слово">
+        <input class="edit-meaning" type="text" value="${escapeHtml(w.meaning)}" placeholder="Значение">
+        <select class="edit-topic">${topicOptions}</select>
+        <div class="edit-form-buttons">
+          <button class="edit-cancel" type="button">Отмена</button>
+          <button class="edit-save" type="button">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 document.getElementById('add-btn').addEventListener('click', async () => {
   const wordInput = document.getElementById('word-input');
   const meaningInput = document.getElementById('meaning-input');
+  const topicSelect = document.getElementById('topic-select');
   const word = wordInput.value.trim();
   const meaning = meaningInput.value.trim();
+  const topic = topicSelect.value || 'Общее';
   if (!word || !meaning) return;
-  words.push({ word, meaning, studyCount: 0, forgotCount: 0, marked: true, needsReview: false, rememberStreak: 0 });
+  words.push({
+    id: genId(), word, meaning, topic,
+    studyCount: 0, forgotCount: 0, marked: true, needsReview: false, rememberStreak: 0
+  });
   await saveWords();
   wordInput.value = '';
   meaningInput.value = '';
   wordInput.focus();
+  renderTopicsManager();
   renderWordList();
 });
 
 document.getElementById('meaning-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('add-btn').click();
+  if (e.key === 'Enter') document.getElementById('topic-select').focus();
 });
 document.getElementById('word-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('meaning-input').focus();
 });
 
-// Backup: export
+document.getElementById('refresh-results-btn').addEventListener('click', () => {
+  renderWordList();
+});
+
 function encodeBackup() {
-  // Simple readable format: word :: meaning, one per line
-  return words.map(w => `${w.word} :: ${w.meaning}`).join('\n');
+  return words.map(w => `${w.word} :: ${w.meaning} :: ${w.topic}`).join('\n');
 }
 
 function decodeBackup(text) {
@@ -660,16 +948,17 @@ function decodeBackup(text) {
   for (const line of lines) {
     const sep = line.includes('::') ? '::' : (line.includes('\t') ? '\t' : null);
     if (!sep) continue;
-    const [word, ...rest] = line.split(sep);
-    const meaning = rest.join(sep).trim();
-    if (word && meaning) parsed.push({ word: word.trim(), meaning });
+    const parts = line.split(sep).map(p => p.trim());
+    const word = parts[0];
+    const meaning = parts[1];
+    const topic = parts[2] || 'Общее';
+    if (word && meaning) parsed.push({ word, meaning, topic });
   }
   return parsed;
 }
 
 function showBackupNotice(message) {
-  const el = document.getElementById('backup-notice');
-  el.textContent = message;
+  document.getElementById('backup-notice').textContent = message;
 }
 
 document.getElementById('export-btn').addEventListener('click', async () => {
@@ -682,7 +971,6 @@ document.getElementById('export-btn').addEventListener('click', async () => {
     await navigator.clipboard.writeText(text);
     showBackupNotice('Список скопирован — сохрани его в заметки на всякий случай.');
   } catch (e) {
-    // fallback: show it in the textarea so the user can copy manually
     const area = document.getElementById('backup-area');
     area.classList.remove('hidden');
     area.value = text;
@@ -707,22 +995,20 @@ document.getElementById('import-confirm-btn').addEventListener('click', async ()
   const area = document.getElementById('backup-area');
   const parsed = decodeBackup(area.value);
   if (parsed.length === 0) {
-    showBackupNotice('Не удалось распознать слова. Формат: слово :: значение, каждая пара на новой строке.');
+    showBackupNotice('Не удалось распознать слова. Формат: слово :: значение :: раздел, каждая пара на новой строке.');
     return;
   }
   words = normalizeWords(parsed);
+  topics = normalizeTopics(topics, words);
   await saveWords();
+  await saveTopics();
+  renderTopicSelects();
   renderWordList();
   area.classList.add('hidden');
   document.getElementById('import-confirm-btn').classList.add('hidden');
   showBackupNotice(`Восстановлено слов: ${parsed.length}.`);
 });
 
-document.getElementById('refresh-results-btn').addEventListener('click', () => {
-  renderWordList();
-});
-
-// Tabs
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -731,7 +1017,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('add-panel').classList.toggle('hidden', target !== 'add');
     document.getElementById('practice-panel').classList.toggle('hidden', target !== 'practice');
     if (target === 'practice') startPractice();
-    if (target === 'add') renderWordList();
+    if (target === 'add') { editingId = null; renderWordList(); }
   });
 });
 
@@ -744,13 +1030,21 @@ function shuffle(arr) {
   return a;
 }
 
-let order = 'random'; // 'random' or 'sequential'
+function getFilteredWords() {
+  return words.filter(w => {
+    if (!w.marked) return false;
+    if (topicFilter !== 'all' && w.topic !== topicFilter) return false;
+    if (statusFilter === 'forgot' && !w.needsReview) return false;
+    if (statusFilter === 'new' && (w.studyCount || 0) > 0) return false;
+    return true;
+  });
+}
 
 function buildDeck() {
-  const marked = words.filter(w => w.marked);
+  const filtered = getFilteredWords();
   const weighted = [];
-  marked.forEach(w => {
-    const copies = w.needsReview ? 3 : 1; // "не помню" карточки встречаются чаще
+  filtered.forEach(w => {
+    const copies = w.needsReview ? 3 : 1;
     for (let i = 0; i < copies; i++) weighted.push(w);
   });
   return order === 'random' ? shuffle(weighted) : weighted;
@@ -772,10 +1066,21 @@ function startPractice() {
 
 function renderPracticeView() {
   const content = document.getElementById('practice-content');
-  const markedCount = words.filter(w => w.marked).length;
+  const filteredCount = getFilteredWords().length;
+
+  const topicOptions = `<option value="all">Все разделы</option>` +
+    topics.map(t => `<option value="${escapeHtml(t)}" ${t === topicFilter ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
 
   content.innerHTML = `
     <div class="toggles-row">
+      <div class="filters-row">
+        <select id="topic-filter-select">${topicOptions}</select>
+        <select id="status-filter-select">
+          <option value="all" ${statusFilter === 'all' ? 'selected' : ''}>Все карточки</option>
+          <option value="new" ${statusFilter === 'new' ? 'selected' : ''}>Только новые</option>
+          <option value="forgot" ${statusFilter === 'forgot' ? 'selected' : ''}>Только «не помню»</option>
+        </select>
+      </div>
       <div class="direction-toggle" id="direction-toggle">
         <button data-dir="en-ru" class="${direction === 'en-ru' ? 'active' : ''}">Сначала слово</button>
         <button data-dir="ru-en" class="${direction === 'ru-en' ? 'active' : ''}">Сначала значение</button>
@@ -788,11 +1093,22 @@ function renderPracticeView() {
     <div id="card-area"></div>
   `;
 
+  document.getElementById('topic-filter-select').addEventListener('change', (e) => {
+    topicFilter = e.target.value;
+    currentIndex = 0;
+    renderPracticeView();
+  });
+
+  document.getElementById('status-filter-select').addEventListener('change', (e) => {
+    statusFilter = e.target.value;
+    currentIndex = 0;
+    renderPracticeView();
+  });
+
   document.querySelectorAll('#direction-toggle button').forEach(btn => {
     btn.addEventListener('click', () => {
       direction = btn.dataset.dir;
       currentIndex = 0;
-      deck = buildDeck();
       renderPracticeView();
     });
   });
@@ -801,16 +1117,18 @@ function renderPracticeView() {
     btn.addEventListener('click', () => {
       order = btn.dataset.order;
       currentIndex = 0;
-      deck = buildDeck();
       renderPracticeView();
     });
   });
 
-  if (markedCount === 0) {
+  if (filteredCount === 0) {
+    let reason = 'Нет карточек, отмеченных «Учить сейчас».';
+    if (topicFilter !== 'all' || statusFilter !== 'all') {
+      reason = 'По выбранным фильтрам карточек не найдено. Попробуй выбрать другой раздел или статус.';
+    }
     document.getElementById('card-area').innerHTML = `
       <div class="no-marked-state">
-        <p>Нет карточек, отмеченных «Учить сейчас».</p>
-        <p>Зайди во вкладку «Добавить» и отметь кнопкой «Учить сейчас» те слова, которые хочешь повторять.</p>
+        <p>${reason}</p>
       </div>`;
     return;
   }
@@ -830,7 +1148,7 @@ function renderCard() {
 
   cardArea.innerHTML = `
     <div class="practice-wrap">
-      <div class="counter">Карточка ${currentIndex + 1} из ${total} · повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз</div>
+      <div class="counter">Раздел: ${escapeHtml(item.topic)} · карточка ${currentIndex + 1} из ${total}<br>повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз</div>
       ${item.needsReview ? `<div class="review-badge">На повторе · ${2 - (item.rememberStreak || 0)} раз до нормального режима</div>` : ''}
       <div class="card" id="flip-card">
         <div class="card-inner">
@@ -867,13 +1185,14 @@ function renderCard() {
 
   function updateCounter() {
     const counterEl = cardArea.querySelector('.counter');
-    if (counterEl) counterEl.textContent = `Карточка ${currentIndex + 1} из ${total} · повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз`;
+    if (counterEl) counterEl.innerHTML = `Раздел: ${escapeHtml(item.topic)} · карточка ${currentIndex + 1} из ${total}<br>повторено ${item.studyCount || 0} раз · не помню ${item.forgotCount || 0} раз`;
   }
 
   function goNext() {
     currentIndex = (currentIndex + 1) % deck.length;
     if (currentIndex === 0) {
       deck = buildDeck();
+      if (deck.length === 0) { renderPracticeView(); return; }
     }
     renderCard();
   }
@@ -905,7 +1224,7 @@ function renderCard() {
   });
 }
 
-loadWords();
+loadAll();
 </script>
 
 </body>
