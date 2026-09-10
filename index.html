@@ -233,6 +233,49 @@
     color: var(--ink);
   }
 
+  .word-list-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  #word-list {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .alpha-index {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 6px 3px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 8px;
+    max-height: 80vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .alpha-index::-webkit-scrollbar { display: none; }
+  .alpha-index button {
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 4px;
+    cursor: pointer;
+    line-height: 1.3;
+  }
+  .alpha-index button:active {
+    color: #fff;
+    background: var(--accent);
+    border-radius: 4px;
+  }
+
   .word-row {
     display: flex;
     justify-content: space-between;
@@ -594,7 +637,10 @@
     <div class="list-filter-row">
       <select id="list-topic-filter"></select>
     </div>
-    <div id="word-list"></div>
+    <div class="word-list-body">
+      <div id="word-list"></div>
+      <div class="alpha-index" id="alpha-index"></div>
+    </div>
   </div>
 
   <div class="backup-box">
@@ -620,7 +666,7 @@ let deck = [];
 let currentIndex = 0;
 let loaded = false;
 let direction = 'en-ru';       // 'en-ru' or 'ru-en'
-let order = 'random';          // 'random' or 'sequential'
+let order = 'random';          // 'random' | 'alphabetical'
 let topicFilter = 'all';       // 'all' or a topic name (practice)
 let statusFilter = 'all';      // 'all' | 'forgot' | 'new'
 let listTopicFilter = 'all';   // 'all' or a topic name (add tab list)
@@ -795,20 +841,47 @@ document.getElementById('list-topic-filter').addEventListener('change', (e) => {
   renderWordList();
 });
 
+function renderAlphaIndex(visible) {
+  const indexEl = document.getElementById('alpha-index');
+  const letters = [];
+  const seen = new Set();
+  visible.forEach(w => {
+    const letter = (w.word.charAt(0) || '#').toUpperCase();
+    if (!seen.has(letter)) {
+      seen.add(letter);
+      letters.push(letter);
+    }
+  });
+
+  indexEl.innerHTML = letters.map(l => `<button data-letter="${escapeHtml(l)}">${escapeHtml(l)}</button>`).join('');
+
+  indexEl.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const letter = btn.dataset.letter;
+      const target = document.querySelector(`[data-letter-anchor="${CSS.escape(letter)}"]`);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
+
 function renderWordList() {
   const listEl = document.getElementById('word-list');
   const titleEl = document.getElementById('word-list-title');
 
-  const visible = words.filter(w => listTopicFilter === 'all' || w.topic === listTopicFilter);
+  const visible = words
+    .filter(w => listTopicFilter === 'all' || w.topic === listTopicFilter)
+    .sort((a, b) => a.word.localeCompare(b.word, 'ru', { sensitivity: 'base' }));
 
   if (words.length === 0) {
     titleEl.textContent = 'Пока нет слов — добавьте первое';
     listEl.innerHTML = '';
+    document.getElementById('alpha-index').innerHTML = '';
     return;
   }
   if (visible.length === 0) {
     titleEl.textContent = `Слова в колоде (${words.length})`;
     listEl.innerHTML = `<div class="no-marked-state"><p>В этом разделе пока нет слов.</p></div>`;
+    document.getElementById('alpha-index').innerHTML = '';
     return;
   }
 
@@ -816,12 +889,16 @@ function renderWordList() {
     ? `Слова в колоде (${words.length})`
     : `Слова в разделе «${listTopicFilter}» (${visible.length})`;
 
+  let lastLetter = null;
   listEl.innerHTML = visible.map(w => {
+    const letter = (w.word.charAt(0) || '#').toUpperCase();
+    const isFirstOfLetter = letter !== lastLetter;
+    lastLetter = letter;
     if (w.id === editingId) {
       return renderEditRow(w);
     }
     return `
-    <div class="word-row" data-id="${w.id}">
+    <div class="word-row" data-id="${w.id}" ${isFirstOfLetter ? `data-letter-anchor="${escapeHtml(letter)}"` : ''}>
       <div class="word-row-main">
         <div class="topic-badge">${escapeHtml(w.topic)}</div>
         <div class="w">${escapeHtml(w.word)}</div>
@@ -839,6 +916,8 @@ function renderWordList() {
     </div>
   `;
   }).join('');
+
+  renderAlphaIndex(visible);
 
   listEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1047,7 +1126,23 @@ function buildDeck() {
     const copies = w.needsReview ? 3 : 1;
     for (let i = 0; i < copies; i++) weighted.push(w);
   });
-  return order === 'random' ? shuffle(weighted) : weighted;
+
+  if (order === 'alphabetical') {
+    return weighted.slice().sort((a, b) => a.word.localeCompare(b.word, 'ru', { sensitivity: 'base' }));
+  }
+
+  // 'random': случайный порядок, но карточки с меньшим числом повторений
+  // приоритетно оказываются ближе к началу — так все карточки изучаются равномерно.
+  const groups = new Map();
+  weighted.forEach(w => {
+    const key = w.studyCount || 0;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(w);
+  });
+  const sortedKeys = Array.from(groups.keys()).sort((a, b) => a - b);
+  let result = [];
+  sortedKeys.forEach(key => { result = result.concat(shuffle(groups.get(key))); });
+  return result;
 }
 
 function startPractice() {
@@ -1087,7 +1182,7 @@ function renderPracticeView() {
       </div>
       <div class="direction-toggle" id="order-toggle">
         <button data-order="random" class="${order === 'random' ? 'active' : ''}">Случайный порядок</button>
-        <button data-order="sequential" class="${order === 'sequential' ? 'active' : ''}">По списку</button>
+        <button data-order="alphabetical" class="${order === 'alphabetical' ? 'active' : ''}">По алфавиту</button>
       </div>
     </div>
     <div id="card-area"></div>
