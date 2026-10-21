@@ -233,6 +233,20 @@
     color: var(--ink);
   }
 
+  .search-row input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: #fff;
+    color: var(--ink);
+  }
+  .search-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
   .word-list-body {
     display: flex;
     align-items: flex-start;
@@ -637,6 +651,13 @@
     <div class="list-filter-row">
       <select id="list-topic-filter"></select>
     </div>
+    <div class="search-row">
+      <input id="search-input" type="search" placeholder="Поиск по слову или значению" autocomplete="off">
+    </div>
+    <div class="direction-toggle" id="sort-toggle">
+      <button type="button" data-sort="alpha" class="active">По алфавиту</button>
+      <button type="button" data-sort="added">По времени добавления</button>
+    </div>
     <div class="word-list-body">
       <div id="word-list"></div>
       <div class="alpha-index" id="alpha-index"></div>
@@ -671,6 +692,13 @@ let topicFilter = 'all';       // 'all' or a topic name (practice)
 let statusFilter = 'all';      // 'all' | 'forgot' | 'new'
 let listTopicFilter = 'all';   // 'all' or a topic name (add tab list)
 let editingId = null;
+let sortMode = 'alpha';        // 'alpha' | 'added' (список во вкладке «Добавить»)
+let searchQuery = '';
+
+try {
+  const savedSort = localStorage.getItem('flashcards:sort');
+  if (savedSort === 'alpha' || savedSort === 'added') sortMode = savedSort;
+} catch (e) { /* ignore */ }
 
 const WORDS_KEY = 'flashcards:words';
 const TOPICS_KEY = 'flashcards:topics';
@@ -847,6 +875,28 @@ document.getElementById('list-topic-filter').addEventListener('change', (e) => {
   renderWordList();
 });
 
+document.getElementById('search-input').addEventListener('input', (e) => {
+  searchQuery = e.target.value;
+  editingId = null;
+  renderWordList();
+});
+
+function syncSortToggle() {
+  document.querySelectorAll('#sort-toggle button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === sortMode);
+  });
+}
+
+document.querySelectorAll('#sort-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    sortMode = btn.dataset.sort;
+    try { localStorage.setItem('flashcards:sort', sortMode); } catch (e) { /* ignore */ }
+    syncSortToggle();
+    renderWordList();
+  });
+});
+syncSortToggle();
+
 function renderAlphaIndex(visible) {
   const indexEl = document.getElementById('alpha-index');
   const letters = [];
@@ -876,31 +926,47 @@ function renderWordList() {
   const listEl = document.getElementById('word-list');
   const titleEl = document.getElementById('word-list-title');
 
-  const visible = words
+  const query = searchQuery.trim().toLowerCase();
+  let visible = words
     .filter(w => listTopicFilter === 'all' || w.topic === listTopicFilter)
-    .sort((a, b) => a.word.localeCompare(b.word, 'ru', { sensitivity: 'base' }));
+    .filter(w => !query ||
+      (w.word || '').toLowerCase().includes(query) ||
+      (w.meaning || '').toLowerCase().includes(query));
+
+  if (sortMode === 'alpha') {
+    visible = visible.sort((a, b) => a.word.localeCompare(b.word, 'ru', { sensitivity: 'base' }));
+  } else {
+    // порядок в массиве = порядок добавления; новые карточки показываем сверху
+    visible = visible.reverse();
+  }
+
+  const alphaEl = document.getElementById('alpha-index');
 
   if (words.length === 0) {
     titleEl.textContent = 'Пока нет слов — добавьте первое';
     listEl.innerHTML = '';
-    document.getElementById('alpha-index').innerHTML = '';
+    alphaEl.innerHTML = '';
     return;
   }
   if (visible.length === 0) {
     titleEl.textContent = `Слова в колоде (${words.length})`;
-    listEl.innerHTML = `<div class="no-marked-state"><p>В этом разделе пока нет слов.</p></div>`;
-    document.getElementById('alpha-index').innerHTML = '';
+    listEl.innerHTML = `<div class="no-marked-state"><p>${query ? 'Ничего не найдено по запросу.' : 'В этом разделе пока нет слов.'}</p></div>`;
+    alphaEl.innerHTML = '';
     return;
   }
 
-  titleEl.textContent = listTopicFilter === 'all'
-    ? `Слова в колоде (${words.length})`
-    : `Слова в разделе «${listTopicFilter}» (${visible.length})`;
+  if (query) {
+    titleEl.textContent = `Найдено: ${visible.length}`;
+  } else {
+    titleEl.textContent = listTopicFilter === 'all'
+      ? `Слова в колоде (${words.length})`
+      : `Слова в разделе «${listTopicFilter}» (${visible.length})`;
+  }
 
   let lastLetter = null;
   listEl.innerHTML = visible.map(w => {
     const letter = (w.word.charAt(0) || '#').toUpperCase();
-    const isFirstOfLetter = letter !== lastLetter;
+    const isFirstOfLetter = sortMode === 'alpha' && letter !== lastLetter;
     lastLetter = letter;
     if (w.id === editingId) {
       return renderEditRow(w);
@@ -925,7 +991,11 @@ function renderWordList() {
   `;
   }).join('');
 
-  renderAlphaIndex(visible);
+  if (sortMode === 'alpha') {
+    renderAlphaIndex(visible);
+  } else {
+    alphaEl.innerHTML = '';
+  }
 
   listEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
     btn.addEventListener('click', () => {
